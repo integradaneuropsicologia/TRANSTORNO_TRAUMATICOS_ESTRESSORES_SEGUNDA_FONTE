@@ -329,7 +329,7 @@ $("#form").addEventListener("submit", async (e)=>{
       source      : SOURCE,
       submitted_at: new Date().toISOString(),
       questions   : qaPairs.join(" | "),
-      metrics     : JSON.stringify({ answers, duration_sec:durationSec })
+      metrics     : ""
     };
 
     await sheetCreate(SHEETS.SCORES, row);
