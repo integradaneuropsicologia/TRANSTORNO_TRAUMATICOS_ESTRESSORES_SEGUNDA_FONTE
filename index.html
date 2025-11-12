@@ -3,209 +3,352 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TRANSTORNO_TRAUMATICOS_ESTRESSORES_SEGUNDA_FONTE</title>
+<title>TRANSTORNO_TRAUMÁTICOS/ESTRESSORES — Segunda Fonte</title>
 <style>
-  :root{--bg:#0f172a;--card:#111827;--line:#1f2937;--text:#e5e7eb;--muted:#94a3b8;--pri:#4f46e5;--ok:#22c55e;--err:#ef4444}
+  :root{
+    --bg:#0f172a;--card:#111827;--line:#1f2937;
+    --text:#e5e7eb;--muted:#94a3b8;
+    --pri:#4f46e5;--ok:#22c55e;--err:#ef4444
+  }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto}
   .wrap{max-width:1000px;margin:24px auto;padding:0 16px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
   h1{margin:0 0 6px;font-size:1.35rem}
   .muted{color:var(--muted)}
+
   .grid-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 6px}
   @media(max-width:720px){.grid-info{grid-template-columns:1fr}}
   .info{background:#0b1220;border:1px solid var(--line);border-radius:10px;padding:10px}
   .info b{display:block;margin-bottom:4px;color:#cbd5e1}
 
+  .sectionTitle{margin:18px 0 8px;color:var(--pri);font-weight:700;font-size:1rem}
+
   .q{border:1px solid var(--line);border-radius:12px;padding:12px;background:#0b1220;margin-bottom:10px}
   .q h3{margin:0 0 8px;font-size:1rem}
   .opts{display:flex;flex-wrap:wrap;gap:10px}
-  label.opt{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+  label.opt{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:#111827}
   .opt input{accent-color:var(--pri)}
-  label.opt:has(input:checked){background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
-  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--pri);border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
-  .btn.ok{background:var(--ok)}
+  label.opt:has(input[type="radio"]:checked){background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--ok);border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
   .btn:disabled{opacity:.6;cursor:not-allowed}
+
   .msg{margin:10px 0;padding:10px;border-radius:8px}
   .okbox{background:#052e1a;border:1px solid #114d2a;color:#b3f7c1}
   .errbox{background:#3b0d0d;border:1px solid #5b1919;color:#ffd0d0}
   .warnbox{background:#3a2903;border:1px solid #5c4307;color:#ffe6b0}
+
   .legend{background:#0b1220;border:1px dashed var(--line);border-radius:10px;padding:10px;margin:6px 0 12px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card">
-    <h1>TRANSTORNO_TRAUMATICOS_ESTRESSORES_SEGUNDA_FONTE</h1>
+    <h1>Transtornos Traumáticos e Estressores — Segunda Fonte</h1>
     <div id="pacInfo" class="grid-info" style="display:none;"></div>
 
     <form id="form" style="margin-top:14px; display:none;">
       <div id="qs"></div>
-      <div class="legend muted">Responda de acordo com o que você observa no dia a dia da pessoa avaliada. O rascunho é salvo automaticamente neste dispositivo.</div>
-      <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
-        <button id="btnSubmit" class="btn ok" type="submit">Enviar respostas</button>
+
+      <div class="legend muted">
+        Responda conforme o que você observa no dia a dia da pessoa avaliada. O rascunho fica salvo automaticamente neste dispositivo.
+      </div>
+
+      <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button id="btnSubmit" class="btn" type="submit">Enviar respostas</button>
         <div id="progress" class="muted"></div>
       </div>
       <div id="msg" class="msg" style="display:none"></div>
     </form>
+
     <div id="alert" class="msg" style="display:none"></div>
   </div>
 </div>
 
 <script>
-// ==== CONFIG ====
-const SHEETDB_BASE="https://sheetdb.io/api/v1/8pmdh33s9fvy8";
-const SHEETS={PATIENTS:"Patients",TOKENS:"LinkTokens",SCORES:"Scores_TRANSTORNO_TRAUMATICOS_ESTRESSORES_SEGUNDA_FONTE"};
-const CODE="TRANSTORNO_TRAUMATICOS_ESTRESSORES_SEGUNDA_FONTE";
-const PORTAL_URL="https://integradaneuropsicologia.github.io/formularios/";
-const SOURCE="familiares/amigos";
+// ======== CONFIG PADRÃO ========
+const SHEETDB_BASE = "https://sheetdb.io/api/v1/8pmdh33s9fvy8";
+const SHEETS = {
+  PATIENTS: "Patients",
+  TOKENS:   "LinkTokens",
+  SCORES:   "Scores_TRANSTORNO_TRAUMATICOS_ESTRESSORES_SEGUNDA_FONTE"
+};
+const CODE       = "TRANSTORNO_TRAUMATICOS_ESTRESSORES_SEGUNDA_FONTE";
+const PORTAL_URL = "https://integradaneuropsicologia.github.io/formularios/";
+const SOURCE     = "familiares/amigos";
 
-// ==== HELPERS ====
-const $=s=>document.querySelector(s);
-const onlyDigits=s=>(s||"").replace(/\D+/g,"");
-const qs=k=>new URLSearchParams(location.search).get(k)||"";
-const AUTOSAVE_KEY=`${CODE}_${qs("token")||"no_token"}`;
-function setBox(id,text,kind="ok"){const el=$(id);if(!el)return;el.textContent=text;el.className="msg "+(kind==="ok"?"okbox":kind==="warn"?"warnbox":"errbox");el.style.display="block";}
-function hideBox(id){const el=$(id);if(el){el.style.display="none";el.textContent="";}}
-function maskCPF(c){const d=onlyDigits(c||"");return d.length===11?`${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`:c||"";}
-function fmtDateISO(i){if(!i)return"";const[y,m,d]=i.split("-");return`${d}/${m}/${y}`;}
-async function GET(u){const r=await fetch(u);if(!r.ok)throw new Error("HTTP "+r.status);return r.json();}
-async function POST(u,b){const r=await fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function PATCH(u,b){const r=await fetch(u,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function sheetSearch(s,p){const usp=new URLSearchParams(p);return GET(`${SHEETDB_BASE}/search?sheet=${encodeURIComponent(s)}&${usp.toString()}`);}
-async function sheetCreate(s,row){return POST(`${SHEETDB_BASE}?sheet=${encodeURIComponent(s)}`,{data:[row]});}
-function goPortalWithToken(){const t=qs("token");try{const u=new URL(PORTAL_URL,location.href);u.searchParams.set("token",t);location.href=u.toString();}catch(_){const sep=PORTAL_URL.includes("?")?"&":"?";location.href=PORTAL_URL+sep+"token="+encodeURIComponent(t);}}
+const $ = s => document.querySelector(s);
+const onlyDigits = s => (s||"").replace(/\D+/g,"");
+const qs = k => new URLSearchParams(location.search).get(k) || "";
+const AUTOSAVE_KEY = `${CODE}_${qs("token")||"no_token"}`;
 
-// ==== PERGUNTAS ====
-const FREQ5=["Nunca","Raramente","Às vezes","Frequentemente","Quase sempre"];
-const YESNO=["Sim","Não","Não sei"];
-const SEVER4=["Não","Leve","Moderada","Grave"];
-const QUESTIONS=[
- {section:"Observação Geral",text:"A pessoa demonstra medo ou reações intensas diante de situações, sons ou lembranças que a recordam de algo ruim?",options:FREQ5},
- {section:"Reações Emocionais",text:"Parece estar constantemente em alerta, assustada ou com sono leve?",options:FREQ5},
- {section:"Reações Emocionais",text:"Mostra irritabilidade, explosões de raiva ou nervosismo após acontecimentos estressantes?",options:FREQ5},
- {section:"Evitação",text:"Evita falar, ir a lugares ou ver pessoas que a lembrem de algo traumático?",options:FREQ5},
- {section:"Evitação",text:"Parece desconectada ou distante quando o assunto é o evento traumático?",options:FREQ5},
- {section:"Humor & Pensamentos",text:"Demonstra tristeza, culpa ou vergonha excessiva após situações difíceis?",options:FREQ5},
- {section:"Humor & Pensamentos",text:"Tem dificuldade de sentir prazer ou interesse em atividades que antes gostava?",options:FREQ5},
- {section:"Comportamento",text:"Apresenta reações físicas (suor, tremor, taquicardia) em situações de estresse?",options:FREQ5},
- {section:"Comportamento",text:"Apresenta dificuldades de concentração ou memória após o evento?",options:FREQ5},
- {section:"Sono & Rotina",text:"Dorme mal, tem pesadelos ou sono agitado?",options:FREQ5},
- {section:"Sono & Rotina",text:"Relata cansaço frequente ou falta de energia?",options:FREQ5},
- {section:"Função Social",text:"Teve queda no rendimento escolar, acadêmico ou profissional após o evento?",options:FREQ5},
- {section:"Função Social",text:"Afasta-se das pessoas, prefere ficar isolada ou evita convívio?",options:FREQ5},
- {section:"Adaptação",text:"Parece não conseguir se adaptar a mudanças ou novos ambientes após situações difíceis?",options:FREQ5},
- {section:"Autocuidado",text:"Apresenta descuido com higiene, alimentação ou sono?",options:FREQ5},
- {section:"Risco & Proteção",text:"Apresenta comportamentos de risco (uso de álcool, automedicação, isolamento extremo)?",options:FREQ5},
- {section:"Risco & Proteção",text:"Conta com apoio emocional de familiares e amigos?",options:FREQ5}
+function setBox(id, text, kind="ok"){
+  const el = $(id); if(!el) return;
+  el.textContent = text;
+  el.className = "msg " + (kind==="ok"?"okbox":kind==="warn"?"warnbox":"errbox");
+  el.style.display = "block";
+}
+function hideBox(id){ const el=$(id); if(el){ el.style.display="none"; el.textContent=""; } }
+function maskCPF(c){ const d=onlyDigits(c||""); return d.length===11?`${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`:(c||""); }
+function fmtDateISO(i){ if(!i) return ""; const [y,m,d]=i.split("-"); return (y&&m&&d)?`${d}/${m}/${y}`:i; }
+
+async function GET(u){ const r=await fetch(u); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }
+async function POST(u,b){ const r=await fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function PATCH(u,b){ const r=await fetch(u,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function sheetSearch(sheet, params){
+  const usp = new URLSearchParams(params);
+  return GET(`${SHEETDB_BASE}/search?sheet=${encodeURIComponent(sheet)}&${usp.toString()}`);
+}
+async function sheetCreate(sheet, row){
+  return POST(`${SHEETDB_BASE}?sheet=${encodeURIComponent(sheet)}`, { data:[row] });
+}
+async function sheetPatchBy(sheet, col, val, data){
+  const url = `${SHEETDB_BASE}/${encodeURIComponent(col)}/${encodeURIComponent(val)}?sheet=${encodeURIComponent(sheet)}`;
+  return PATCH(url, { data });
+}
+function goPortalWithToken(){
+  const TOKEN=qs("token");
+  try{ const u=new URL(PORTAL_URL,location.href); u.searchParams.set("token",TOKEN); location.href=u.toString(); }
+  catch(_){ const sep=PORTAL_URL.includes("?")?"&":"?"; location.href=PORTAL_URL+sep+"token="+encodeURIComponent(TOKEN); }
+}
+
+// ======== QUESTIONÁRIO ========
+const FREQ5 = ["Nunca","Raramente","Às vezes","Frequentemente","Quase sempre"];
+const QUESTIONS = [
+  {section:"Observação Geral", text:"A pessoa demonstra medo ou reações intensas diante de situações, sons ou lembranças que a recordam de algo ruim?", options:FREQ5},
+  {section:"Reações Emocionais", text:"Parece estar constantemente em alerta, assustada ou com sono leve?", options:FREQ5},
+  {section:"Reações Emocionais", text:"Mostra irritabilidade, explosões de raiva ou nervosismo após acontecimentos estressantes?", options:FREQ5},
+  {section:"Evitação", text:"Evita falar, ir a lugares ou ver pessoas que a lembrem de algo traumático?", options:FREQ5},
+  {section:"Evitação", text:"Parece desconectada ou distante quando o assunto é o evento traumático?", options:FREQ5},
+  {section:"Humor & Pensamentos", text:"Demonstra tristeza, culpa ou vergonha excessiva após situações difíceis?", options:FREQ5},
+  {section:"Humor & Pensamentos", text:"Tem dificuldade de sentir prazer ou interesse em atividades que antes gostava?", options:FREQ5},
+  {section:"Comportamento", text:"Apresenta reações físicas (suor, tremor, taquicardia) em situações de estresse?", options:FREQ5},
+  {section:"Comportamento", text:"Apresenta dificuldades de concentração ou memória após o evento?", options:FREQ5},
+  {section:"Sono & Rotina", text:"Dorme mal, tem pesadelos ou sono agitado?", options:FREQ5},
+  {section:"Sono & Rotina", text:"Relata cansaço frequente ou falta de energia?", options:FREQ5},
+  {section:"Função Social", text:"Teve queda no rendimento escolar, acadêmico ou profissional após o evento?", options:FREQ5},
+  {section:"Função Social", text:"Afasta-se das pessoas, prefere ficar isolada ou evita convívio?", options:FREQ5},
+  {section:"Adaptação", text:"Parece não conseguir se adaptar a mudanças ou novos ambientes após situações difíceis?", options:FREQ5},
+  {section:"Autocuidado", text:"Apresenta descuido com higiene, alimentação ou sono?", options:FREQ5},
+  {section:"Risco & Proteção", text:"Apresenta comportamentos de risco (uso de álcool, automedicação, isolamento extremo)?", options:FREQ5},
+  {section:"Risco & Proteção", text:"Conta com apoio emocional de familiares e amigos?", options:FREQ5}
 ];
-const N=QUESTIONS.length;
+const N = QUESTIONS.length;
 
-// ==== RENDER ====
+// ======== RENDER ========
 function renderQuestions(){
-  const host=$("#qs");host.innerHTML="";
-  QUESTIONS.forEach((q,idx)=>{
-    const n=idx+1,qn=String(n).padStart(2,"0");
-    const wrap=document.createElement("div");wrap.className="q";
-    let html=`<h3>${n}. ${q.text}</h3><div class="opts">`;
+  const host = $("#qs");
+  host.innerHTML = "";
+
+  let lastSection = "";
+  QUESTIONS.forEach((q, idx) => {
+    if(q.section && q.section !== lastSection){
+      const s = document.createElement("div");
+      s.className = "sectionTitle";
+      s.textContent = q.section;
+      host.appendChild(s);
+      lastSection = q.section;
+    }
+
+    const n = idx + 1;
+    const qn = String(n).padStart(2,"0");
+
+    const wrap = document.createElement("div");
+    wrap.className = "q";
+    wrap.setAttribute("role","group");
+    wrap.setAttribute("aria-labelledby",`lbl${qn}`);
+
+    let html = `<h3 id="lbl${qn}">${n}. ${q.text}</h3><div class="opts">`;
     q.options.forEach((opt,i)=>{
-      const id=`q${qn}_${i}`;
-      html+=`<label class="opt"><input type="radio" name="q${qn}" id="${id}" value="${opt}"><span>${opt}</span></label>`;
+      const id = `q${qn}_${i}`;
+      html += `<label class="opt">
+        <input type="radio" name="q${qn}" id="${id}" value="${opt}" required>
+        <span>${opt}</span>
+      </label>`;
     });
-    html+="</div>";wrap.innerHTML=html;host.appendChild(wrap);
+    html += `</div>`;
+    wrap.innerHTML = html;
+    host.appendChild(wrap);
   });
-  host.addEventListener("change",()=>{updateProg();autosaveAnswers();});
+
+  const onAny = () => { updateProg(); autosaveAnswers(); };
+  host.addEventListener("input", onAny);
+  host.addEventListener("change", onAny);
   updateProg();
 }
 
 function updateProg(){
-  let filled=0;QUESTIONS.forEach((_,idx)=>{
-    const qn=`q${String(idx+1).padStart(2,"0")}`;
-    if(document.querySelector(`input[name="${qn}"]:checked`))filled++;
-  });
-  $("#progress").textContent=`${filled}/${N} respondidas`;
+  let filled = 0;
+  for(let i=1;i<=N;i++){
+    const qn = `q${String(i).padStart(2,"0")}`;
+    if(document.querySelector(`input[name="${qn}"]:checked`)) filled++;
+  }
+  $("#progress").textContent = `${filled}/${N} respondidas`;
 }
 
-// ==== AUTOSAVE ====
+// ======== AUTOSAVE ========
 function autosaveAnswers(){
-  const answers={},qaPairs=[];let answered=0;
-  QUESTIONS.forEach((q,idx)=>{
-    const n=idx+1,qn=`q${String(n).padStart(2,"0")}`;
-    const val=(document.querySelector(`input[name="${qn}"]:checked`)||{}).value||"";
-    answers[qn]=val;if(val)answered++;qaPairs.push(`${n}. ${q.text}: ${val||"(sem resposta)"}`);
-  });
-  localStorage.setItem(AUTOSAVE_KEY,JSON.stringify({code:CODE,token:qs("token"),answers}));
+  const answers = {};
+  for(let i=1;i<=N;i++){
+    const qn = `q${String(i).padStart(2,"0")}`;
+    const el = document.querySelector(`input[name="${qn}"]:checked`);
+    if(el) answers[qn] = el.value;
+  }
+  localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(answers));
 }
 function restoreAutosave(){
-  try{const raw=localStorage.getItem(AUTOSAVE_KEY);if(!raw)return;
-    const {answers}=JSON.parse(raw)||{};if(!answers)return;
-    Object.entries(answers).forEach(([k,v])=>{
-      const el=document.querySelector(`input[name="${k}"][value="${v}"]`);if(el)el.checked=true;
-    });updateProg();
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if(!raw) return;
+    const data = JSON.parse(raw)||{};
+    Object.entries(data).forEach(([k,v])=>{
+      const el = document.querySelector(`input[name="${k}"][value="${v}"]`);
+      if(el) el.checked = true;
+    });
+    updateProg();
   }catch(_){}
 }
-function clearAutosave(){localStorage.removeItem(AUTOSAVE_KEY);}
+function clearAutosave(){ localStorage.removeItem(AUTOSAVE_KEY); }
 
-// ==== ESTADO ====
-let patient=null,tokenRow=null,CPF="";
-let startAt=Date.now();
+// ======== ESTADO / BOOT ========
+let patient=null, CPF="", startAt=Date.now();
 
-// ==== BOOT ====
 (async function boot(){
   try{
-    const TOKEN=qs("token");
-    if(!TOKEN){setBox("#alert","Link inválido (sem token).","err");return;}
-    const trows=await sheetSearch(SHEETS.TOKENS,{token:TOKEN});
-    if(!trows?.length)throw new Error("Token inválido ou expirado.");
-    tokenRow=trows[0];
-    const disabled=String(tokenRow.disabled||"não").toLowerCase()==="sim";
-    const expired=tokenRow.expires_at&&(Date.parse(tokenRow.expires_at)<Date.now());
-    if(disabled||expired)throw new Error("Token desativado/expirado.");
-    CPF=onlyDigits(tokenRow.cpf||"");if(!CPF)throw new Error("Token sem CPF.");
-    const prows=await sheetSearch(SHEETS.PATIENTS,{cpf:CPF});
-    if(!prows?.length)throw new Error("Paciente não encontrado.");
-    patient=prows[0];
-    renderPatientInfo();renderQuestions();
-    $("#pacInfo").style.display="grid";$("#form").style.display="block";hideBox("#alert");restoreAutosave();
-  }catch(err){console.error(err);setBox("#alert",err.message,"err");}
+    const TOKEN = qs("token");
+    if(!TOKEN){ setBox("#alert","Link inválido (sem token).","err"); return; }
+
+    const trows = await sheetSearch(SHEETS.TOKENS, { token:TOKEN });
+    if(!trows?.length) throw new Error("Token inválido ou expirado.");
+    const tokenRow = trows[0];
+
+    const disabled = String(tokenRow.disabled||"não").toLowerCase()==="sim";
+    const expired  = tokenRow.expires_at && (Date.parse(tokenRow.expires_at) < Date.now());
+    if(disabled || expired) throw new Error("Token desativado/expirado.");
+
+    CPF = onlyDigits(tokenRow.cpf||"");
+    if(!CPF) throw new Error("Token sem CPF vinculado.");
+
+    const prows = await sheetSearch(SHEETS.PATIENTS, { cpf:CPF });
+    if(!prows?.length) throw new Error("Paciente não encontrado.");
+    patient = prows[0];
+
+    // Respeita liberação por código, como nos outros formulários
+    const allowed = String(patient[CODE]||"").toLowerCase()==="sim";
+    if(!allowed){ setBox("#alert","Formulário não liberado para este paciente.","err"); return; }
+
+    // Anti-duplicidade
+    const already = await sheetSearch(SHEETS.SCORES, { cpf:CPF, code:CODE });
+    const flagDone = String(patient[`${CODE}_FEITO`]||"").toLowerCase()==="sim";
+    if(already?.length || flagDone){
+      setBox("#alert","Formulário já respondido. Voltando ao portal…","ok");
+      setTimeout(goPortalWithToken,1200);
+      return;
+    }
+
+    renderPatientInfo();
+    renderQuestions();
+    $("#pacInfo").style.display = "grid";
+    $("#form").style.display = "block";
+    hideBox("#alert");
+    startAt = Date.now();
+    restoreAutosave();
+  }catch(err){
+    console.error(err);
+    setBox("#alert", err.message || "Falha ao abrir o formulário.", "err");
+  }
 })();
 
 function renderPatientInfo(){
-  const g=$("#pacInfo");g.innerHTML="";
-  const info=[["Nome",patient.nome||"-"],["CPF",maskCPF(patient.cpf)],["Nascimento",fmtDateISO(patient.data_nascimento)],["E-mail",patient.email||"-"],["WhatsApp",patient.whatsapp||"-"]];
-  for(const[k,v]of info){const d=document.createElement("div");d.className="info";d.innerHTML=`<b>${k}</b><div>${v||"-"}</div>`;g.appendChild(d);}
+  const g = $("#pacInfo"); g.innerHTML = "";
+  const info = [
+    ["Nome", patient.nome || "-"],
+    ["CPF", maskCPF(patient.cpf)],
+    ["Nascimento", fmtDateISO(patient.data_nascimento)],
+    ["E-mail", patient.email || "-"],
+    ["WhatsApp", patient.whatsapp || "-"]
+  ];
+  for(const [k,v] of info){
+    const d = document.createElement("div");
+    d.className = "info";
+    d.innerHTML = `<b>${k}</b><div>${v||"-"}</div>`;
+    g.appendChild(d);
+  }
 }
 
-// ==== SUBMIT ====
+// ======== SUBMIT ========
 let sending=false;
-$("#form").addEventListener("submit",async e=>{
-  e.preventDefault();if(sending)return;sending=true;hideBox("#msg");
-  const btn=$("#btnSubmit");const orig=btn.textContent;btn.disabled=true;btn.textContent="Enviando…";
+$("#form").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  if(sending) return;
+  sending = true;
+  hideBox("#msg");
+  const btn = $("#btnSubmit");
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = "Enviando…";
+
   try{
-    const answers={},qaPairs=[];let answered=0;
+    // Validação simples
+    for(let i=1;i<=N;i++){
+      const qn = `q${String(i).padStart(2,"0")}`;
+      if(!document.querySelector(`input[name="${qn}"]:checked`)){
+        setBox("#msg",`Responda o item ${i}.`,"warn");
+        document.getElementById(`lbl${String(i).padStart(2,"0")}`)?.scrollIntoView({behavior:"smooth",block:"center"});
+        sending=false; btn.disabled=false; btn.textContent=orig;
+        return;
+      }
+    }
+
+    // Anti-duplicidade novamente
+    const again = await sheetSearch(SHEETS.SCORES, { cpf:CPF, code:CODE });
+    if(again && again.length){
+      setBox("#msg","Já existe uma resposta registrada. Voltando ao portal…","ok");
+      setTimeout(goPortalWithToken,1000);
+      return;
+    }
+
+    // Monta respostas
+    const answers = {};
+    const qaPairs = [];
     QUESTIONS.forEach((q,idx)=>{
-      const n=idx+1,qn=`q${String(n).padStart(2,"0")}`;
-      const val=(document.querySelector(`input[name="${qn}"]:checked`)||{}).value||"";
-      answers[qn]=val;if(val)answered++;
-      qaPairs.push(`${n}. ${q.text}: ${val||"(sem resposta)"}`);
+      const n = idx+1;
+      const qn = `q${String(n).padStart(2,"0")}`;
+      const val = (document.querySelector(`input[name="${qn}"]:checked`)||{}).value || "";
+      answers[n] = val;
+      qaPairs.push(`${n}. ${q.text} => ${val}`);
     });
-    const categoria=qaPairs.join(" | ");
-    const row={
-      result_id:`${patient.cpf}_${CODE}_${Date.now()}`,
-      token:qs("token"),
-      cpf:patient.cpf,
-      code:CODE,
-      source:SOURCE,
-      submitted_at:new Date().toISOString(),
-      total:answered,
-      categoria,
-      metrics:JSON.stringify({questions:QUESTIONS,answers,answeredCount:answered,duration_sec:Math.round((Date.now()-startAt)/1000)})
+
+    const durationSec = Math.round((Date.now()-startAt)/1000);
+
+    const row = {
+      result_id   : `${patient.cpf}_${CODE}_${Date.now()}`,
+      token       : qs("token"),
+      cpf         : patient.cpf,
+      code        : CODE,
+      source      : SOURCE,
+      submitted_at: new Date().toISOString(),
+      questions   : qaPairs.join(" | "),
+      metrics     : JSON.stringify({ answers, duration_sec:durationSec })
     };
-    await sheetCreate(SHEETS.SCORES,row);
+
+    await sheetCreate(SHEETS.SCORES, row);
+
+    // Marca como feito no cadastro do paciente (mesmo padrão dos anteriores)
+    await sheetPatchBy(SHEETS.PATIENTS, "cpf", patient.cpf, {
+      [`${CODE}_FEITO`]: "sim",
+      [`${CODE}_FEITO_AT`]: new Date().toISOString()
+    });
+
     clearAutosave();
-    setBox("#msg","Formulário enviado com sucesso. Voltando ao portal…","ok");
-    setTimeout(goPortalWithToken,1300);
-  }catch(err){console.error(err);setBox("#msg",err.message,"err");sending=false;btn.disabled=false;btn.textContent=orig;}
+    setBox("#msg","Formulário enviado. Retornando ao portal…","ok");
+    setTimeout(goPortalWithToken,1200);
+
+  }catch(err){
+    console.error(err);
+    setBox("#msg", err.message || "Falha ao enviar.", "err");
+    sending=false; btn.disabled=false; btn.textContent=orig;
+  }
 });
 </script>
 </body>
